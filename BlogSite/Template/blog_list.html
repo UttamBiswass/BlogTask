@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Blogs</title>
+    
+<script>
+   
+let currentPage = 1;
+const pageSize = 5;  // Adjust if needed
+const apiUrl = 'http://localhost:8000/all-blogs/';
+
+function BlogListing(page = 1) {
+    const url = `${apiUrl}?page=${page}`;
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.results, '--------------------results');
+            renderBlogs(data.results);
+            setupPagination(data);
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+}
+
+function renderBlogs(blogs) {
+    const container = document.getElementById("blogs-container");
+    container.innerHTML = "";  
+
+    blogs.forEach(blog => {
+
+        const blogEntry = document.createElement("div");
+        blogEntry.classList.add("blog-entry");
+
+        const blogLink = document.createElement("a");
+        blogLink.href = `/blogs/${blog.id}/`;  
+        blogLink.innerHTML = `
+            <h2>${blog.title}</h2>
+            <p class="description">${blog.description}</p>
+            <p class="post-date">Posted at: ${new Date(blog.post_at).toLocaleDateString()}</p>
+        `;
+
+        blogEntry.appendChild(blogLink);
+        container.appendChild(blogEntry);
+    });
+}
+
+function setupPagination(data) {
+    const paginationContainer = document.getElementById("pagination-container");
+    paginationContainer.innerHTML = "";
+
+    if (data.previous) {
+        const prevButton = document.createElement("button");
+        prevButton.textContent = "Previous";
+        prevButton.onclick = () => {
+            currentPage--;
+            BlogListing(currentPage);
+        };
+        paginationContainer.appendChild(prevButton);
+    }
+
+    if (data.next) {
+        const nextButton = document.createElement("button");
+        nextButton.textContent = "Next";
+        nextButton.onclick = () => {
+            currentPage++;
+            BlogListing(currentPage);
+        };
+        paginationContainer.appendChild(nextButton);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => BlogListing(currentPage));
+
+
+</script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        padding: 20px;
+    }
+ 
+    .blog-list {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .blog-entry {
+        border-bottom: 1px solid #ccc;
+        padding: 10px 0;
+    }
+    .blog-entry a {
+    text-decoration: none;
+    color: inherit; 
+}
+    .blog-entry:last-child {
+        border-bottom: none;
+    }
+    h2 {
+        margin-top: 0;
+    }
+    .description {
+        color: #555;
+    }
+    .post-date {
+        font-size: 0.9em;
+        color: #999;
+    }
+    #pagination-container {
+        margin-top: 20px;
+    }
+    button {
+        padding: 10px;
+        margin: 5px;
+        border: 1px solid #ccc;
+        background-color: #f8f8f8;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #e0e0e0;
+    }
+</style>
+</head>
+<body>
+<div class="blog-list" id="blogs-container">
+</div>
+
+<div id="pagination-container">
+</div>
+
+</body>
+</html>
